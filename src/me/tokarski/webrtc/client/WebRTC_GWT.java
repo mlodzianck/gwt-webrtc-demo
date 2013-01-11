@@ -8,19 +8,24 @@ import me.tokarski.webrtc.client.wrappers.MediaStream;
 import me.tokarski.webrtc.client.wrappers.Utils;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONNumber;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
+import com.google.gwt.media.client.Audio;
 import com.google.gwt.media.client.Video;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.sencha.gxt.widget.core.client.Dialog;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.box.ConfirmMessageBox;
 import com.sencha.gxt.widget.core.client.box.PromptMessageBox;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
@@ -34,6 +39,7 @@ public class WebRTC_GWT implements EntryPoint {
 	WSConnection connection;
 	MediaStream localStream;
 	Video localVideoElement;
+	HTML whoAmI;
 	boolean localVideoInitialized = false;
 	boolean sigChannelConnected = false;
 	PeopleWindow peopleWindow;
@@ -83,7 +89,37 @@ public class WebRTC_GWT implements EntryPoint {
 	}
 
 	protected void process_call_request(JSONObject jso) {
-		String caller = ((JSONString)jso.get("caller")).stringValue();
+		Audio a = Audio.createIfSupported();
+		if (a!=null) {
+			a.setSrc("DingLing.wav");
+			a.play();
+		}
+		final String caller = ((JSONString)jso.get("caller")).stringValue();
+		final Integer callId = (int) ((JSONNumber) jso.get("call_id")).doubleValue();
+		ConfirmMessageBox box = new ConfirmMessageBox("Accept call?", caller+" is calling you, answer?");
+        box.addHideHandler(new HideHandler() {
+			
+			@Override
+			public void onHide(HideEvent event) {
+				 Dialog btn = (Dialog) event.getSource();
+				 String answer = btn.getHideButton().getText();
+				 GWT.log("User clicked "+answer);
+				 if (answer.toLowerCase().equals("no")) {
+						connection.send(WSMsgsBuilder.declineCallMsg(callId));
+				 } else {
+					createInboundCallWindow(caller, callId);
+					connection.send(WSMsgsBuilder.confirmCallMsg(callId));
+
+				 }
+			}
+		});
+        
+        box.show();
+		
+
+	}
+	
+	private void createInboundCallWindow(String caller,Integer callId) {
 		Video remotVideo = Video.createIfSupported();
 		remotVideo.setAutoplay(true);
 		remotVideo.setPoster("facebook-no-face.gif");
@@ -112,8 +148,6 @@ public class WebRTC_GWT implements EntryPoint {
 			public void onCallProceding() {
 			}
 		};
-		Integer callId = (int) ((JSONNumber) jso.get("call_id")).doubleValue();
-		connection.send(WSMsgsBuilder.confirmCallMsg(callId));
 		final Call call =new Call(Call.Direction.IN, localStream, connection, remotVideo, l, callId);
 		hangup.addClickHandler(new ClickHandler() {
 			@Override
@@ -122,7 +156,6 @@ public class WebRTC_GWT implements EntryPoint {
 				
 			}
 		});
-
 	}
 
 	protected void process_subscriber_state_update(JSONObject jso) {
@@ -144,13 +177,9 @@ public class WebRTC_GWT implements EntryPoint {
 			Info.display("", "Welcome " + name + "!");
 			JSONObject people = (JSONObject) jso.get("people");
 			showPeopleWindow(people);
-			com.sencha.gxt.widget.core.client.Window whoAmI = new com.sencha.gxt.widget.core.client.Window();
-			whoAmI.add(new HTML("Logged as<br><b>"+name+"</b>" ));
-			whoAmI.setPosition(0, 0);
-			whoAmI.setClosable(false);
-			whoAmI.setResizable(false);
+			whoAmI=new HTML("<p style=\"color: white;\">Logged as <b>"+name+"</b></p>");
+			RootPanel.get().add(whoAmI, 15, 5);
 			
-			whoAmI.show();
 		}
 		if (status.equals("failed")) {
 			String reason = ((JSONString) jso.get("reason")).stringValue();
@@ -181,7 +210,7 @@ public class WebRTC_GWT implements EntryPoint {
 
 	}
 
-	protected void doCall(String who) {
+	protected void doCall(final String who) {
 		Video remotVideo = Video.createIfSupported();
 		remotVideo.setAutoplay(true);
 		remotVideo.setPoster("facebook-no-face.gif");
@@ -204,6 +233,7 @@ public class WebRTC_GWT implements EntryPoint {
 			@Override
 			public void onCallTerminate(String cause) {
 				callWindow.hide();
+				Info.display("", "Call to "+who+" terminated, reason "+cause);
 
 			}
 

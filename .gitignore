@@ -1,5 +1,6 @@
 /test
 /test-classes
-/war
 /gwt-unitCache
 /.settings
+/war/webrtc_gwt
+/war/WEB-INF

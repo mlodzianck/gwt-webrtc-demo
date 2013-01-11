@@ -26,6 +26,13 @@ public class WSMsgsBuilder {
 		return jso.toString();
 	}
 	
+	public static String declineCallMsg(Integer callid) {
+		JSONObject jso = new JSONObject();
+		jso.put("command", new JSONString("decline_call"));
+		jso.put("call_id", new JSONNumber(callid));
+		return jso.toString();
+	}
+	
 	public static String endCallMsg(Integer callid) {
 		JSONObject jso = new JSONObject();
 		jso.put("command", new JSONString("end_call"));

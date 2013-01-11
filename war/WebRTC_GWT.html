@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- The DOCTYPE declaration above will set the     -->
+<!-- browser's rendering engine into                -->
+<!-- "Standards Mode". Replacing this declaration   -->
+<!-- with a "Quirks Mode" doctype is not supported. -->
+
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<!--                                                               -->
+<!-- Consider inlining CSS to reduce the number of requested files -->
+<!--                                                               -->
+<link type="text/css" rel="stylesheet" href="WebRTC_GWT.css">
+
+<!--                                           -->
+<!-- Any title is fine                         -->
+<!--                                           -->
+<title>GWT WEB RTC PROJECT</title>
+
+<!--                                           -->
+<!-- This script loads your compiled module.   -->
+<!-- If you add any GWT meta tags, they must   -->
+<!-- be added before this line.                -->
+<!--                                           -->
+<script type="text/javascript" language="javascript"
+	src="webrtc_gwt/webrtc_gwt.nocache.js"></script>
+<style type="text/css">
+/*this is what we want the div to look like*/
+div.topright {
+	display: block;
+	/*set the div in the top right corner*/
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 400px;
+	text-align: le;
+	padding: 5px;
+	
+	/*give it some background and border*/
+	
+	
+}
+</style>
+</head>
+
+<!--                                           -->
+<!-- The body can have arbitrary html, or      -->
+<!-- you can leave the body empty if you want  -->
+<!-- to create a completely dynamic UI.        -->
+<!--                                           -->
+<body>
+	<div class="topright">
+		<p style="color: white;">
+		Tested on Chrome 24.0.1312.52<br>
+		
+		<a style="color: white;"  href="https://github.com/mlodzianck/gwt-webrtc-demo" >Client source code (Java/GWT)</a><br>
+		<a style="color: white;"  href="https://github.com/mlodzianck/webrtc-sig-server" >Server source code (Erlang)</a><br>
+		<br>
+		<br>
+		Questions?<br>
+		<a style="color: white;"  href="mailto:maciek@tokarski.me" >Contact me</a></p>
+
+	</div>
+	<!-- OPTIONAL: include this if you want history support -->
+	<iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1'
+		style="position: absolute; width: 0; height: 0; border: 0"></iframe>
+
+	<!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
+	<noscript>
+		<div
+			style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+			Your web browser must have JavaScript enabled in order for this
+			application to display correctly.</div>
+	</noscript>
+
+
+</body>
+</html>

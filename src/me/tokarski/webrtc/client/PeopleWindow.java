@@ -8,23 +8,26 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
+import com.sencha.gxt.core.client.dom.ScrollSupport.ScrollMode;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutPack;
+import com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VBoxLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VBoxLayoutContainer.VBoxLayoutAlign;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 
 public class PeopleWindow extends Window {
 	private Map<String, PeopleEntryWidget> peopleMap = new HashMap<String, PeopleEntryWidget>();
-	private VBoxLayoutContainer container = new VBoxLayoutContainer();
+	private VerticalLayoutContainer container = new VerticalLayoutContainer();
 	private PeopleCallCallback peopleCallCallback;
 	public PeopleWindow(JSONObject people, final PeopleCallCallback callback) {
 		this.peopleCallCallback=callback;
+		
 		setPixelSize(200, 300);
 		setHeadingText("Avialable people");
 		setClosable(false);
-		container = new VBoxLayoutContainer();
-		container.setVBoxLayoutAlign(VBoxLayoutAlign.LEFT);
-		container.setPack(BoxLayoutPack.START);
+		
+		container.setScrollMode(ScrollMode.AUTOY);
 		Set<String> nicks = people.keySet();
 		for (final String nick : nicks) {
 			String state = ((JSONString) people.get(nick)).stringValue();

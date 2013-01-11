@@ -13,7 +13,7 @@
 	<inherits name="com.google.gwt.json.JSON" />
 	<inherits name="de.csenk.gwt.ws.WebSocket" />
 	<inherits name='com.sencha.gxt.ui.GXT' />
-	<inherits name="com.sencha.gxt.theme.blue.Blue" />
+	<inherits name="com.sencha.gxt.theme.gray.Gray" />
 	<inherits name="com.sencha.gwt.uibinder.UiBinder" />
 	<!-- Other module inherits -->
 	<stylesheet src="WebRTC_GWT.css" />
