@@ -1,5 +1,6 @@
 package me.tokarski.webrtc.client;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -21,7 +22,11 @@ public class PeopleEntryWidget extends HorizontalPanel {
 		add(callBtn);
 	}
 	public void setState(String state) {
-		this.state = new HTML(state);
+		GWT.log("updating state");
+		remove(this.state);
+		this.state=new HTML(state);
+		insert(this.state, 2);
+		
 	}
 	public Button getCallBtn() {
 		return callBtn;

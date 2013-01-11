@@ -37,8 +37,8 @@ public class WebRTC_GWT implements EntryPoint {
 	boolean localVideoInitialized = false;
 	boolean sigChannelConnected = false;
 	PeopleWindow peopleWindow;
-
-	static final String WS_CONN_ERROR_MSG = "It looks like the websockets server is down.<br><a href=\"mailto:maciek@tokarski.me\">E-mail me</a> to let me know about this";
+	static final String DEFAULT_WS_URL = "ws://dev-22.thellium.net:8000/wrtc";
+	static final String WS_CONN_ERROR_MSG = "It looks like the websockets server is down.<br><a href=\"mailto:maciek@tokarski.me\">E-mail me</a> if you want to let me know.";
 
 	private void connectToSigServer() {
 		connection = new WSConnection(wsServerUrl,
@@ -57,6 +57,7 @@ public class WebRTC_GWT implements EntryPoint {
 						sigChannelConnected = false;
 						Info.display("",
 								"Websocket connection closed (server error??)");
+						showAlertMessageAndReload("Websocket error", "Disconected from signaling server<br>After you click ok page will be reloaded");
 					}
 
 					@Override
@@ -148,6 +149,7 @@ public class WebRTC_GWT implements EntryPoint {
 			whoAmI.setPosition(0, 0);
 			whoAmI.setClosable(false);
 			whoAmI.setResizable(false);
+			
 			whoAmI.show();
 		}
 		if (status.equals("failed")) {
@@ -242,6 +244,7 @@ public class WebRTC_GWT implements EntryPoint {
 
 	@Override
 	public void onModuleLoad() {
+		Resources.INSTANCE.css().ensureInjected(); 
 		localVideoElement = Video.createIfSupported();
 		if (localVideoElement == null) {
 			Window.alert("Your browser does not support getUserMedia()");
@@ -253,6 +256,10 @@ public class WebRTC_GWT implements EntryPoint {
 
 
 		wsServerUrl = Window.Location.getParameter("sigUrl");
+		if (wsServerUrl==null) {
+			wsServerUrl = DEFAULT_WS_URL;
+		}
+		Info.display("", "Connecting to sig server @ url : "+wsServerUrl);
 		WSServerCheck.checkServerAlive(wsServerUrl,
 				new WSServerCheck.CheckCallback() {
 					@Override
