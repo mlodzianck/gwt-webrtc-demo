@@ -13,11 +13,14 @@ public class GetUserMediaUtils {
 		var ecb = function(error) {
 			callback.@me.tokarski.webrtc.client.wrappers.GetUserMediaUtils.GetUserMedaCallback::navigatorUserMediaErrorCallback(Lcom/google/gwt/core/client/JavaScriptObject;)(error);
 		}
-
-		navigator.webkitGetUserMedia({
-			audio : audio,
-			video : video
-		}, cb, ecb);
+		try {
+			navigator.webkitGetUserMedia({
+				audio : audio,
+				video : video
+			}, cb, ecb);
+		} catch (err) {
+			ecb(err);
+		}
 	}-*/;
 
 	public interface GetUserMedaCallback {

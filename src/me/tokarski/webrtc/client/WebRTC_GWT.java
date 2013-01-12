@@ -19,6 +19,7 @@ import com.google.gwt.media.client.Audio;
 import com.google.gwt.media.client.Video;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -36,6 +37,7 @@ import com.sencha.gxt.widget.core.client.info.Info;
  */
 public class WebRTC_GWT implements EntryPoint {
 	String wsServerUrl;
+	CheckBox autoanswer;
 	WSConnection connection;
 	MediaStream localStream;
 	Video localVideoElement;
@@ -96,6 +98,13 @@ public class WebRTC_GWT implements EntryPoint {
 		}
 		final String caller = ((JSONString)jso.get("caller")).stringValue();
 		final Integer callId = (int) ((JSONNumber) jso.get("call_id")).doubleValue();
+		if (autoanswer.getValue()) {
+			connection.send(WSMsgsBuilder.confirmCallMsg(callId));
+			createInboundCallWindow(caller, callId);
+			return;
+		}
+		
+		
 		ConfirmMessageBox box = new ConfirmMessageBox("Accept call?", caller+" is calling you, answer?");
         box.addHideHandler(new HideHandler() {
 			
@@ -274,6 +283,11 @@ public class WebRTC_GWT implements EntryPoint {
 
 	@Override
 	public void onModuleLoad() {
+		autoanswer = new CheckBox("Auto-answer incoming calls?");
+		autoanswer.setValue(false);
+		autoanswer.addStyleName("autoanswer-checkbox");
+		
+		RootPanel.get().add(autoanswer, 15, 50);
 		Resources.INSTANCE.css().ensureInjected(); 
 		localVideoElement = Video.createIfSupported();
 		if (localVideoElement == null) {

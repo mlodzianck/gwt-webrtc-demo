@@ -6,3 +6,6 @@ body {
 	-o-background-size: cover;
 	background-size: cover;
 }
+.autoanswer-checkbox {
+	color: white;
+}
