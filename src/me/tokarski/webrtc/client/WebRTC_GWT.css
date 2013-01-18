@@ -5,6 +5,7 @@ body {
 	-webkit-background-size: cover;
 	-o-background-size: cover;
 	background-size: cover;
+	text-shadow:  rgb(120, 120, 120) 2px 2px 4px;
 }
 .autoanswer-checkbox {
 	color: white;

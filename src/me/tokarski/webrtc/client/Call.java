@@ -170,6 +170,8 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 		}
 		if (type.equals("sdpAnswer")) {
 			JSONObject sdp = (JSONObject) payload.get("sdp");
+			Utils.consoleLog("Remote SDP");
+			Utils.consoleDebug(sdp.getJavaScriptObject());
 			pc.setRemoteDescription(sdp.getJavaScriptObject());
 		}
 	}
