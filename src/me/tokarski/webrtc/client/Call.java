@@ -29,6 +29,7 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 	private Integer callId;
 	private Direction direction;
 	private CallStateListener callStateListener;
+	private boolean videoEnabled = false;
 	public Call(Direction direction,JavaScriptObject localMediaStream,WSConnection wsConnection,Video remoteVideo,CallStateListener listener,Integer callId) {
 		this(direction, localMediaStream, wsConnection, remoteVideo, listener,null,callId);
 	}
@@ -74,7 +75,7 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 			JSONObject toRelay= new JSONObject();
 			toRelay.put("type", new JSONString("iceCandidate"));
 			toRelay.put("cadidate", candidate);
-			Utils.consoleDebug(toRelay.getJavaScriptObject());
+			//Utils.consoleDebug(toRelay.getJavaScriptObject());
 			wsConnection.send(WSMsgsBuilder.relayMsg(callId, toRelay));
 		}
 		
@@ -129,18 +130,27 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 			handle_termniate();
 		} else if (cmd.equals("relayed")) {
 			handle_relayed(jso);
-		}  
+		} else {
+			Utils.consoleLog("Unhandled message");
+			Utils.consoleLog(jso.getJavaScriptObject());
+		}
+		
 		
 	}
 
 
 	private void handle_relayed(JSONObject jso) {
+		
+		
 		JSONObject payload = (JSONObject) jso.get("payload");
 		String type = ((JSONString)payload.get("type")).stringValue();
 		if (type.equals("iceCandidate")) {
 			JSONObject cadidate = (JSONObject) payload.get("cadidate");
+			Utils.consoleLog("Remote candidate");
+			Utils.consoleDebug(jso.getJavaScriptObject());
+			
 			pc.addIceCandidate(cadidate.getJavaScriptObject());
-		}
+		} else
 		if (type.equals("sdpOffer")) {
 			JSONObject sdp = (JSONObject) payload.get("sdp");
 			pc.setRemoteDescription(sdp.getJavaScriptObject());
@@ -167,12 +177,15 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 					
 				}
 			});
-		}
+		} else
 		if (type.equals("sdpAnswer")) {
 			JSONObject sdp = (JSONObject) payload.get("sdp");
 			Utils.consoleLog("Remote SDP");
 			Utils.consoleDebug(sdp.getJavaScriptObject());
 			pc.setRemoteDescription(sdp.getJavaScriptObject());
+		} else {
+			Utils.consoleLog("Unhnadled relay message");
+			Utils.consoleDebug(jso.getJavaScriptObject());
 		}
 	}
 
@@ -207,7 +220,7 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 
 	private void handle_b_party_confirmation() {
 		Utils.consoleLog("B-party confirmed our call, lets go!");
-		pc.createOffer(new SDPOfferMediaConstraints(true, true), new SDPCreateOfferCallback() {
+		pc.createOffer(new SDPOfferMediaConstraints(true, videoEnabled), new SDPCreateOfferCallback() {
 			
 			@Override
 			public void RTCSessionDescriptionCallback(RTCSessionDescription sdp) {
@@ -241,4 +254,11 @@ public class Call implements PeerConnectionCallbacks, CallMessageCallback{
 		void onCallProceding();
 		
 	}
+	
+	public void setVideoEnabled(boolean videoEnabled) {
+		this.videoEnabled = videoEnabled;
+	}
+	public boolean isVideoEnabled() {
+		return videoEnabled;
+	};
 }

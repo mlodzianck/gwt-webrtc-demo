@@ -3,4 +3,7 @@
 /gwt-unitCache
 /.settings
 /war/webrtc_gwt
-/war/WEB-INF
+*.class
+war/WEB-INF/deploy/webrtc_gwt/symbolMaps
+war/WEB-INF/lib
+war/WEB-INF/deploy/webrtc_gwt/rpcPolicyManifest

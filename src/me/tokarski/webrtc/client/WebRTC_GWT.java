@@ -1,5 +1,9 @@
 package me.tokarski.webrtc.client;
 
+import java.util.UUID;
+
+import org.apache.catalina.util.MD5Encoder;
+
 import me.tokarski.webrtc.client.Call.CallStateListener;
 import me.tokarski.webrtc.client.Call.Direction;
 import me.tokarski.webrtc.client.PeopleWindow.PeopleCallCallback;
@@ -7,9 +11,12 @@ import me.tokarski.webrtc.client.wrappers.GetUserMediaUtils;
 import me.tokarski.webrtc.client.wrappers.MediaStream;
 import me.tokarski.webrtc.client.wrappers.Utils;
 
+import com.allen_sauer.gwt.log.client.DivLogger;
+import com.allen_sauer.gwt.log.client.Log;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.impl.Md5Digest;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONNumber;
@@ -38,6 +45,7 @@ import com.sencha.gxt.widget.core.client.info.Info;
 public class WebRTC_GWT implements EntryPoint {
 	String wsServerUrl;
 	CheckBox autoanswer;
+	CheckBox videoEnabled;
 	WSConnection connection;
 	MediaStream localStream;
 	Video localVideoElement;
@@ -45,7 +53,7 @@ public class WebRTC_GWT implements EntryPoint {
 	boolean localVideoInitialized = false;
 	boolean sigChannelConnected = false;
 	PeopleWindow peopleWindow;
-	static final String DEFAULT_WS_URL = "ws://dev-22.thellium.net:8000/wrtc";
+	static final String DEFAULT_WS_URL = "ws://192.168.56.180:8000/iwrtc";
 	static final String WS_CONN_ERROR_MSG = "It looks like the websockets server is down.<br><a href=\"mailto:maciek@tokarski.me\">E-mail me</a> if you want to let me know.";
 
 	private void connectToSigServer() {
@@ -56,7 +64,13 @@ public class WebRTC_GWT implements EntryPoint {
 					public void onConnectionOpened() {
 						sigChannelConnected = true;
 						Info.display("", "Websocket connection opened");
-						showLoginBox();
+						
+						if (Window.Location.getParameter("user")!=null) {
+							connection.send(WSMsgsBuilder.registrationMsg(Window.Location.getParameter("user")));
+						} else {
+							showLoginBox();
+						}
+						
 
 					}
 
@@ -91,6 +105,12 @@ public class WebRTC_GWT implements EntryPoint {
 	}
 
 	protected void process_call_request(JSONObject jso) {
+		if (!localVideoInitialized ||  !sigChannelConnected) {
+			Utils.consoleLog("local media or sig channel unitialized");
+			return;
+		}
+		
+		
 		Audio a = Audio.createIfSupported();
 		if (a!=null) {
 			a.setSrc("DingLing.wav");
@@ -158,6 +178,7 @@ public class WebRTC_GWT implements EntryPoint {
 			}
 		};
 		final Call call =new Call(Call.Direction.IN, localStream, connection, remotVideo, l, callId);
+		call.setVideoEnabled(videoEnabled.getValue());
 		hangup.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -191,16 +212,9 @@ public class WebRTC_GWT implements EntryPoint {
 			
 		}
 		if (status.equals("failed")) {
-			String reason = ((JSONString) jso.get("reason")).stringValue();
-			AlertMessageBox box = new AlertMessageBox("Login error!",
-					"Login failed for reason " + reason);
-			box.addHideHandler(new HideHandler() {
-				@Override
-				public void onHide(HideEvent event) {
-					showLoginBox();
-				}
-			});
-			box.show();
+			Info.display("", "registering under random name");
+			String name = Long.toString(System.currentTimeMillis());
+			connection.send(WSMsgsBuilder.registrationMsg(name));
 		}
 
 	}
@@ -220,6 +234,10 @@ public class WebRTC_GWT implements EntryPoint {
 	}
 
 	protected void doCall(final String who) {
+		if (!localVideoInitialized || !sigChannelConnected) {
+			Utils.consoleLog("local media or sig channel unitialized");
+			return;
+		}
 		Video remotVideo = Video.createIfSupported();
 		remotVideo.setAutoplay(true);
 		remotVideo.setPoster("facebook-no-face.gif");
@@ -260,6 +278,7 @@ public class WebRTC_GWT implements EntryPoint {
 		};
 		final Call call = new Call(Direction.OUT, localStream, connection,
 				remotVideo, listener, who);
+		call.setVideoEnabled(videoEnabled.getValue());
 		hangup.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
@@ -283,11 +302,47 @@ public class WebRTC_GWT implements EntryPoint {
 
 	@Override
 	public void onModuleLoad() {
+		
+		
 		autoanswer = new CheckBox("Auto-answer incoming calls?");
 		autoanswer.setValue(false);
 		autoanswer.addStyleName("autoanswer-checkbox");
 		
 		RootPanel.get().add(autoanswer, 15, 50);
+		
+		
+		videoEnabled = new CheckBox("Video enabled");
+		videoEnabled.setValue(false);
+		videoEnabled.addStyleName("autoanswer-checkbox");
+		RootPanel.get().add(videoEnabled, 15, 80);
+		
+		
+		Button getUserMediaBtn = new Button("getUserMedia");
+		getUserMediaBtn.addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				getUserMedia();
+				
+			}
+		});
+		RootPanel.get().add(getUserMediaBtn, 15, 110);
+		
+		Button callTest123W = new Button("Call test123");
+		callTest123W.addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				
+				doCall("test123");
+				
+			}
+		});
+		RootPanel.get().add(callTest123W, 15, 140);
+		
+		
+		
 		Resources.INSTANCE.css().ensureInjected(); 
 		localVideoElement = Video.createIfSupported();
 		if (localVideoElement == null) {
@@ -296,7 +351,7 @@ public class WebRTC_GWT implements EntryPoint {
 		}
 		localVideoElement.setPoster("facebook-no-face.gif");
 		localVideoElement.setAutoplay(true);
-		getUserMedia();
+		
 
 
 		wsServerUrl = Window.Location.getParameter("sigUrl");
@@ -323,7 +378,8 @@ public class WebRTC_GWT implements EntryPoint {
 	}
 
 	public void getUserMedia() {
-		GetUserMediaUtils.getUserMedia(true, true,
+		Utils.consoleLog("Getting user maedia, video="+videoEnabled.getValue());
+		GetUserMediaUtils.getUserMedia(true, videoEnabled.getValue(),
 				new GetUserMediaUtils.GetUserMedaCallback() {
 
 					@Override
